@@ -1,23 +1,44 @@
-import logo from './logo.svg';
+import React, { useState, useEffect } from "react";
+import { getColors } from "./services/colors";
+import Button from "./components/Button";
+import List from "./components/List";
+
 import './App.css';
 
-function App() {
+const App = () => {
+
+  const [colors, setColors] = useState([]);
+  const [lastColor, setLastColor] = useState(null);
+  const buttonText = (colors.length && colors[colors.length - 1].hex) || 'Get color';
+
+  const fetchColor = async () => {
+    try {
+      const fetchedColors = await getColors();
+      const colorString = `#${fetchedColors.new_color}`;
+      if(fetchedColors.new_color && !colors.find(c => c.hex === colorString)) {
+        setColors([
+          ...colors,
+          {
+            hex: colorString,
+            position: colors.length,
+          },
+        ]);
+        setLastColor(colorString);
+      }
+
+    } catch (e) {
+      console.log(e);
+    }
+  };
+
+  useEffect(() => {
+    fetchColor();
+  }, []);
+
   return (
     <div className="App">
-      <header className="App-header">
-        <img src={logo} className="App-logo" alt="logo" />
-        <p>
-          Edit <code>src/App.js</code> and save to reload.
-        </p>
-        <a
-          className="App-link"
-          href="https://reactjs.org"
-          target="_blank"
-          rel="noopener noreferrer"
-        >
-          Learn React
-        </a>
-      </header>
+      <Button buttonText={buttonText} buttonTextColor={lastColor} onClick={fetchColor} />
+      <List colors={colors} setColors={setColors} lastColor={lastColor} />
     </div>
   );
 }
